@@ -47,6 +47,19 @@ export function AuthProvider(props: AuthProvider) {
         setUser(user)
     }
 
+    useEffect(() =>{
+        const token = localStorage.getItem('@dowhile:token')
+
+        if (token) {
+            // para que toda requisição que parta daqui para frente, ela vá junto com o token no cabeçalho
+            api.defaults.headers.common.authorization = `Bearer ${token}`
+
+            api.get<User>('profile').then(response => {
+                setUser(response.data)
+            })
+        }
+    }, [])
+
     useEffect(() => {
         const url = window.location.href;
         const hasGithubCode = url.includes("?code=")
