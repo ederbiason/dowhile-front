@@ -1,5 +1,7 @@
 import { api } from '../../services/api';
 
+import io from 'socket.io-client';
+
 import styles from './styles.module.scss';
 
 import logoImg from '../../assets/logo.svg';
@@ -14,8 +16,35 @@ type Message = {
     }
 }
 
+const messagesQueue: Message[] = []
+
+const socket =  io('http://localhost:4000')
+
+// sempre que receber mensagem nova ele atualiza 
+// event listenner
+socket.on('new_message', (newMessage: Message) => {
+    messagesQueue.push(newMessage)
+})
+
 export function MessageList() {
     const [messages, setMessages] = useState<Message[]>([])
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            if(messagesQueue.length > 0) {
+                setMessages(prevState => 
+                    [
+                        messagesQueue[0],
+                        prevState[0],
+                        prevState[1]
+                    ].filter(Boolean)
+                )
+                // Boolean vai remover valores que sao "false" (void, null, undefined)
+
+                messagesQueue.shift()
+            }
+        }, 3000)
+    }, [])
 
     // requisição no backend 
     useEffect(() => {
